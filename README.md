@@ -52,25 +52,49 @@ This will automatically open your browser and retrieve the token.
 
 ### 4. Setup GitHub Actions Workflow
 
-Currently, the workflow file is at the root of your repository. You need to move it to the correct location:
+You need to create the workflow file in the correct location through the GitHub web interface:
 
-1. Create a `.github/workflows` directory in your repository:
-```
-mkdir -p .github/workflows
+1. Go to your repository on GitHub
+2. Click "Add file" > "Create new file"
+3. Enter `.github/workflows/weekly_combine.yml` as the file name
+4. Copy and paste the following content:
+
+```yaml
+name: Weekly Spotify Playlist Combiner
+
+on:
+  schedule:
+    - cron: '0 8 * * 1'  # Run at 8:00 AM every Monday
+  workflow_dispatch:     # Allow manual trigger
+
+jobs:
+  combine-playlists:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run playlist combiner
+      env:
+        SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+        SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+        SPOTIFY_REFRESH_TOKEN: ${{ secrets.SPOTIFY_REFRESH_TOKEN }}
+      run: python spotify_combiner.py
 ```
 
-2. Move the workflow file there:
-```
-git mv weekly_combine.yml .github/workflows/
-git commit -m "Move workflow file to correct location"
-git push
-```
-
-Alternatively, you can do this through the GitHub web interface:
-1. Create a new file at `.github/workflows/weekly_combine.yml`
-2. Copy the contents from the existing `weekly_combine.yml` file
-3. Commit the new file
-4. Delete the old file
+5. Commit the new file
+6. You can then delete the `weekly_combine.yml` file from the root directory if desired
 
 ### 5. Test the Workflow
 
